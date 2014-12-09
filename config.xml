@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<config>
+    <server ip="127.0.0.1" port="8888"/>
+    <blender location="/usr/bin/blender"/>
+    <shared location="/home/amru/Documents/Development/Blender"/>
+    <source folder="/Source"/>
+    <output folder="/Output"/>
+</config>
