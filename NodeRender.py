@@ -6,6 +6,7 @@ import psutil
 import json
 from threading import Thread
 import xml.etree.ElementTree as ET
+import sys
 
 from Config import Config
 from Constants import Constants
@@ -26,7 +27,7 @@ class NodeRender(Thread, Constants):
         ip_addr = socket.gethostbyname(socket.gethostname())
         
         # set filename status node
-        self.__node_status_file = NodeRender.NODE_STATUS_FOLDER+'node_status.'+ip_addr+'.xml'
+        self.__node_status_file = NodeRender.C_STR_NODE_STATUS_FOLDER+'node_status.'+ip_addr+'.xml'
         
         # set node status
         self.set_node_status(1)
@@ -44,6 +45,8 @@ class NodeRender(Thread, Constants):
                 # get configuration, check if configuration is changed
                 config = Config().get_config()
                 
+                print(config)
+                
                 if len(config):
                     print('do: send node info..')
                     self.__send_node_info(config)
@@ -56,7 +59,7 @@ class NodeRender(Thread, Constants):
                 print('exception: error while connecting to server')
                 print(e)
                 
-            time.sleep(NodeRender.NODE_RENDER_SLEEP_TIME)
+            time.sleep(NodeRender.C_NUM_NODE_RENDER_SLEEP_TIME)
         
     
     # send message to server
@@ -83,33 +86,36 @@ class NodeRender(Thread, Constants):
         
     # send node information
     def __send_node_info(self, config):
-        self.__send_message(config['server_ip'], config['server_port'], json.dumps(self.__get_node_info(config)))
+        self.__send_message(config[NodeRender.C_STR_IP], config[NodeRender.C_STR_PORT], json.dumps(self.__get_node_info(config)))
     
     # get cpu information
     def __get_node_info(self, config):
     
         node_info = {}
-        
+    
         # add cpu report type as status cpu infomation
-        node_info['data_type'] = NodeRender.DATA_CPU
+        node_info[NodeRender.C_STR_DATA_TYPE] = NodeRender.C_STR_DATA_CPU
         
         # get cpu count
-        node_info['cpu_num'] = psutil.cpu_count()
+        node_info[NodeRender.C_STR_CPU_NUM] = psutil.cpu_count()
         
         # get per cpu utilization
-        node_info['cpu_usage'] = psutil.cpu_percent(interval=1, percpu=True)
+        node_info[NodeRender.C_STR_CPU_USAGE] = psutil.cpu_percent(interval=1, percpu=True)
         
         # get memory usage
-        node_info['memory_used'] = psutil.phymem_usage().used
-        node_info['memory_free'] = psutil.phymem_usage().free
+        node_info[NodeRender.C_STR_MEMORY_USED] = psutil.phymem_usage().used
+        node_info[NodeRender.C_STR_MEMORY_FREE] = psutil.phymem_usage().free
         
-        if os.access(config['shared_location'], os.W_OK):
+        # get os platform from client
+        node_info[NodeRender.C_STR_OS_PLATFORM] = os.platform
+        
+        if os.access(config[NodeRender.C_STR_SHARED], os.W_OK):
             # add access shared location info
-            node_info['shared_location_access'] = NodeRender.SHARED_WRITE_OK
+            node_info[NodeRender.C_STR_SHARED_LOCATION_ACCESS] = NodeRender.C_NUM_SHARED_WRITE_OK
                         
         else:
             # add access shared locaiton info
-            node_info['shared_location_access'] = NodeRender.SHARED_WRITE_NONE
+            node_info[NodeRender.C_STR_SHARED_LOCATION_ACCESS] = NodeRender.C_NUM_SHARED_WRITE_NONE
         
         return node_info
         
@@ -121,15 +127,15 @@ class NodeRender(Thread, Constants):
         if not os.path.isfile(self.__node_status_file):
             
             # create file server info file
-            node_status = ET.Element(NodeRender.NODE_TAG)
-            node_status.set(NodeRender.STATUS_ATTR, str(status))
+            node_status = ET.Element(NodeRender.C_STR_NODE)
+            node_status.set(NodeRender.C_STR_STATUS, str(status))
             
             ET.ElementTree(node_status).write(self.__node_status_file, encoding='UTF-8')
             
         else:
             node_status = ET.parse(self.__node_status_file).getroot()
             
-            node_status.set(NodeRender.STATUS_ATTR, str(status))
+            node_status.set(NodeRender.C_STR_STATUS, str(status))
             
             # write to xml
             ET.ElementTree(node_status).write(self.__node_status_file, encoding='UTF-8')
@@ -137,7 +143,7 @@ class NodeRender(Thread, Constants):
     # get status node
     def get_node_status(self):
         node_info = ET.parse(self.__node_status_file).getroot()
-        return int(node_info.attrib[NodeRender.STATUS_ATTR])
+        return int(node_info.attrib[NodeRender.C_STR_STATUS])
         
     # start service
     def start_service(self):

@@ -7,60 +7,61 @@ class Constants():
     # node render constants
     #######################
     # send data report type to server monitor
-    DATA_CPU = 'node_cpu_info'
-    DATA_RENDER = 'node_render_info'
+    C_STR_DATA_CPU = 'node_cpu_info'
+    C_STR_DATA_RENDER = 'node_render_info'
     
     # write access to shared flag
-    SHARED_WRITE_OK = 1
-    SHARED_WRITE_NONE = 0
+    C_NUM_SHARED_WRITE_OK = 1
+    C_NUM_SHARED_WRITE_NONE = 0
     
-    NODE_RENDER_SLEEP_TIME = 0.5
+    C_NUM_NODE_RENDER_SLEEP_TIME = 0.5
     
-    NODE_STATUS_FOLDER = 'node_status/'
+    C_STR_NODE_STATUS_FOLDER = 'node_status/'
     
     ########################
     # node monitor constants
     ########################
-    NODES_TAG = 'nodes'
-    NODE_TAG = 'node'
-    MEMORY_FREE_ATTR = 'memory_free'
-    CPU_USAGE_ATTR = 'cpu_usage'
-    SHARED_LOCATION_ACCESS_ATTR = 'shared_location_access'
-    DATA_TYPE_ATTR = 'data_type'
-    MEMORY_USED_ATTR = 'memory_used'
-    CPU_NUM_ATTR = 'cpu_num'
-    LAST_CONNECTED_ATTR = 'last_connected'
+    C_STR_NODES = 'nodes'
+    C_STR_NODE = 'node'
+    C_STR_MEMORY_FREE = 'memory_free'
+    C_STR_CPU_USAGE = 'cpu_usage'
+    C_STR_SHARED_LOCATION_ACCESS = 'shared_location_access'
+    C_STR_DATA_TYPE = 'data_type'
+    C_STR_MEMORY_USED = 'memory_used'
+    C_STR_CPU_NUM = 'cpu_num'
+    C_STR_LAST_CONNECTED = 'last_connected'
+    C_STR_OS_PLATFORM = 'os_platform'
     
-    STATUS_ATTR = 'status'
+    C_STR_STATUS = 'status'
     
-    NODE_INFO_FILE = 'node_info.xml'
-    SERVER_INFO_FILE = 'server_status.xml'
+    C_STR_NODE_INFO_FILE = 'node_info.xml'
+    C_STR_SERVER_INFO_FILE = 'server_status.xml'
     
-    NODE_MONITOR_SLEEP_TIME = 0.05
+    C_NUM_NODE_MONITOR_SLEEP_TIME = 0.05
 
     ##################
     # config constants
     ##################
-    SERVER_TAG = 'server'
-    IP_ATTR = 'ip'
-    PORT_ATTR = 'port'
-    SHARED_TAG = 'shared'
-    LOCATION_ATTR = 'location'
-    BLENDER_TAG = 'blender'
-    SOURCE_TAG = 'source'
-    FOLDER_ATTR = 'folder'
-    OUTPUT_TAG = 'output'
+    C_STR_SERVER = 'server'
+    C_STR_IP = 'ip'
+    C_STR_PORT = 'port'
+    C_STR_SHARED = 'shared'
+    C_STR_LOCATION = 'location'
+    C_STR_BLENDER = 'blender'
+    C_STR_SOURCE = 'source'
+    C_STR_FOLDER = 'folder'
+    C_STR_OUTPUT = 'output'
     
-    CONFIG_FILE = 'config.xml'
+    C_STR_CONFIG_FILE = 'config.xml'
     
     ######################
     # scene info constants
     ######################
-    SCENES_TAG = 'scenes'
-    SCENE_TAG = 'scene'
-    SCENE_NAME_ATTR = 'name'
-    SCENE_FRAME_START_ATTR = 'frame_start'
-    SCENE_FRAME_END_ATTR = 'frame_end'
-    SCENE_FRAME_STEP_ATTR = 'frame_step'
+    C_STR_SCENES = 'scenes'
+    C_STR_SCENE = 'scene'
+    C_STR_SCENE_NAME = 'name'
+    C_STR_SCENE_FRAME_START = 'frame_start'
+    C_STR_SCENE_FRAME_END = 'frame_end'
+    C_STR_SCENE_FRAME_STEP = 'frame_step'
     
     

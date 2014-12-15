@@ -6,16 +6,17 @@ import shutil
 import subprocess
 from Config import Config
 
+from Constants import Constants
 
 # this file generate .blend into source to be processed
 # this will generate folder name, named as file name
 
-class SourceGenerator():
+class SourceGenerator(Constants):
 
     def __init__(self, config):
-        self.__source_folder = config["source_folder"]
-        self.__blender_location = config["blender_location"]
-        self.__shared_location = config["shared_location"]
+        self.__source_folder = config[SourceGenerator.C_STR_SOURCE]
+        self.__blender_location = config[SourceGenerator.C_STR_BLENDER]
+        self.__shared_location = config[SourceGenerator.C_STR_SHARED]
         
         self.__get_blend_file()
         

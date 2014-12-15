@@ -35,12 +35,12 @@ class NodeMonitor(Thread, Constants):
             try:
                 # get configuration, check if configuration is changed
                 config = Config().get_config()
-                
+                print(config)
                 if len(config):
                     # check node information file
                     self.__check_node_info_file()
                     
-                    if os.access(config['shared_location'], os.W_OK):
+                    if os.access(config[NodeMonitor.C_STR_SHARED], os.W_OK):
                         
                         print("check: shared location access ok")
                         
@@ -66,7 +66,7 @@ class NodeMonitor(Thread, Constants):
                 print('exception: error while initialize server')
                 print(e)
                 
-            time.sleep(NodeMonitor.NODE_MONITOR_SLEEP_TIME)
+            time.sleep(NodeMonitor.C_NUM_NODE_MONITOR_SLEEP_TIME)
 
     # init node monitor server
     def __init_node_server(self, config):
@@ -74,44 +74,44 @@ class NodeMonitor(Thread, Constants):
             print('do: starting server...')
             # create socket socketserver TCPServer
             # handle implementation communication between node render and moniotor is in NodeHandler
-            self.__server_monitor = socketserver.TCPServer((config['server_ip'], config['server_port']), NodeHandler)
+            self.__server_monitor = socketserver.TCPServer((config[NodeMonitor.C_STR_IP], config[NodeMonitor.C_STR_PORT]), NodeHandler)
             self.__thread_node_listener = Thread(target=self.__server_monitor.serve_forever, daemon=True)
             self.__thread_node_listener.start()
                             
     # get check if file node node_info.xml exist
     # if not exist create it
     def __check_node_info_file(self):
-        if not os.path.isfile(NodeMonitor.NODE_INFO_FILE):
+        if not os.path.isfile(NodeMonitor.C_STR_NODE_INFO_FILE):
             
             # create xml parent structure
-            node_info = ET.Element(NodeMonitor.NODES_TAG)
-            ET.ElementTree(node_info).write(NodeMonitor.NODE_INFO_FILE, encoding='UTF-8')
+            node_info = ET.Element(NodeMonitor.C_STR_NODES)
+            ET.ElementTree(node_info).write(NodeMonitor.C_STR_NODE_INFO_FILE, encoding='UTF-8')
             
     # set server status
     # status should be 0 or 1
     # 0 mean stop
     # 1 mean running
     def set_server_status(self, status):
-        if not os.path.isfile(NodeMonitor.SERVER_INFO_FILE):
+        if not os.path.isfile(NodeMonitor.C_STR_SERVER_INFO_FILE):
             
             # create file server info file
-            server_info = ET.Element(NodeMonitor.SERVER_TAG)
-            server_info.set(NodeMonitor.STATUS_ATTR, str(status))
+            server_info = ET.Element(NodeMonitor.C_STR_SERVER)
+            server_info.set(NodeMonitor.C_STR_STATUS, str(status))
             
-            ET.ElementTree(server_info).write(NodeMonitor.SERVER_INFO_FILE, encoding='UTF-8')
+            ET.ElementTree(server_info).write(NodeMonitor.C_STR_SERVER_INFO_FILE, encoding='UTF-8')
             
         else:
-            server_info = ET.parse(NodeHandler.SERVER_INFO_FILE).getroot()
+            server_info = ET.parse(NodeHandler.C_STR_SERVER_INFO_FILE).getroot()
             
-            server_info.set(NodeMonitor.STATUS_ATTR, str(status))
+            server_info.set(NodeMonitor.C_STR_STATUS, str(status))
             
             # write to xml
-            ET.ElementTree(server_info).write(NodeHandler.SERVER_INFO_FILE, encoding='UTF-8')
+            ET.ElementTree(server_info).write(NodeHandler.C_STR_SERVER_INFO_FILE, encoding='UTF-8')
             
     # get status server
     def get_server_status(self):
-        server_info = ET.parse(NodeHandler.SERVER_INFO_FILE).getroot()
-        return int(server_info.attrib[NodeMonitor.STATUS_ATTR])
+        server_info = ET.parse(NodeHandler.C_STR_SERVER_INFO_FILE).getroot()
+        return int(server_info.attrib[NodeMonitor.C_STR_STATUS])
         
     # shutdown server
     def stop_service(self):
@@ -120,7 +120,7 @@ class NodeMonitor(Thread, Constants):
         self.set_server_status(0)
         
         # delete server info
-        os.remove(NodeMonitor.SERVER_INFO_FILE)
+        os.remove(NodeMonitor.C_STR_SERVER_INFO_FILE)
         
     # start service
     def start_service(self):
