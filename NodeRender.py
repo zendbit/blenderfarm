@@ -45,8 +45,6 @@ class NodeRender(Thread, Constants):
                 # get configuration, check if configuration is changed
                 config = Config().get_config()
                 
-                print(config)
-                
                 if len(config):
                     print('do: send node info..')
                     self.__send_node_info(config)
@@ -107,7 +105,10 @@ class NodeRender(Thread, Constants):
         node_info[NodeRender.C_STR_MEMORY_FREE] = psutil.phymem_usage().free
         
         # get os platform from client
-        node_info[NodeRender.C_STR_OS_PLATFORM] = os.platform
+        node_info[NodeRender.C_STR_OS_PLATFORM] = sys.platform
+        
+        # get os name from client
+        node_info[NodeRender.C_STR_OS_HOSTNAME] = socket.gethostname()
         
         if os.access(config[NodeRender.C_STR_SHARED], os.W_OK):
             # add access shared location info
