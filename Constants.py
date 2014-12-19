@@ -25,6 +25,7 @@ class Constants():
     C_STR_NODE = 'node'
     C_STR_MEMORY_FREE = 'memory_free'
     C_STR_CPU_USAGE = 'cpu_usage'
+    C_STR_CPU_USAGE_AVR = 'cpu_usage_avr'
     C_STR_SHARED_LOCATION_ACCESS = 'shared_location_access'
     C_STR_DATA_TYPE = 'data_type'
     C_STR_MEMORY_USED = 'memory_used'
@@ -32,6 +33,7 @@ class Constants():
     C_STR_LAST_CONNECTED = 'last_connected'
     C_STR_OS_PLATFORM = 'os_platform'
     C_STR_OS_HOSTNAME = 'os_hostname'
+    C_STR_RUNNING_THREAD = 'running_thread'
     
     C_STR_STATUS = 'status'
     

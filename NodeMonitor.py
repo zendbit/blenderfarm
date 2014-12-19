@@ -107,12 +107,14 @@ class NodeMonitor(Thread, Constants):
                 
             node_cpuinfo_item.set(NodeHandler.C_STR_MEMORY_FREE, str(node_data[NodeHandler.C_STR_MEMORY_FREE]))
             node_cpuinfo_item.set(NodeHandler.C_STR_CPU_USAGE, str(node_data[NodeHandler.C_STR_CPU_USAGE]))
+            node_cpuinfo_item.set(NodeHandler.C_STR_CPU_USAGE_AVR, str(node_data[NodeHandler.C_STR_CPU_USAGE_AVR]))
             node_cpuinfo_item.set(NodeHandler.C_STR_SHARED_LOCATION_ACCESS, str(node_data[NodeHandler.C_STR_SHARED_LOCATION_ACCESS]))
             node_cpuinfo_item.set(NodeHandler.C_STR_MEMORY_USED, str(node_data[NodeHandler.C_STR_MEMORY_USED]))
             node_cpuinfo_item.set(NodeHandler.C_STR_CPU_NUM, str(node_data[NodeHandler.C_STR_CPU_NUM]))
             node_cpuinfo_item.set(NodeHandler.C_STR_LAST_CONNECTED, str(time.time()))
             node_cpuinfo_item.set(NodeHandler.C_STR_OS_PLATFORM, node_data[NodeHandler.C_STR_OS_PLATFORM])
             node_cpuinfo_item.set(NodeHandler.C_STR_OS_HOSTNAME, node_data[NodeHandler.C_STR_OS_HOSTNAME])
+            node_cpuinfo_item.set(NodeHandler.C_STR_RUNNING_THREAD, node_data[NodeHandler.C_STR_RUNNING_THREAD])
                 
             # write to xml
             # ET.ElementTree(node_info_root).write(NodeHandler.C_STR_NODE_CPUINFO_FILE, encoding='UTF-8')

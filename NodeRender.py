@@ -32,6 +32,11 @@ class NodeRender(Thread, Constants):
         # set node status
         self.set_node_status(1)
         
+        # thread each user cpu
+        # this will automatically alocated
+        self.__render_threads = []
+        self.__init_render_threads();
+        
     # run method thread
     def run(self):
         while self.__is_running:
@@ -59,6 +64,44 @@ class NodeRender(Thread, Constants):
                 
             time.sleep(NodeRender.C_NUM_NODE_RENDER_SLEEP_TIME)
         
+    
+    # initialize thread processor
+    # this will allocate thread for each cpu count
+    # max thread instance for render process is equal with cpu count
+    def __init_render_threads(self):
+        self.__render_threads = []
+        
+        # init each processor with None value
+        # number processor is equals to cpu count
+        for index in range(0, psutil.cpu_count()):
+            self.__render_threads.append(None)
+            
+    # check how many render threads are running
+    def __get_render_threads_running_count(self):
+        count = 0
+        for processor in self.__render_threads:
+            if processor.__class__.__name__ == 'Thread'\
+                and processor.isAlive():
+                count += 1
+        
+        return count
+        
+    # get available render thread
+    # will return in list available thread
+    # if all thread is active will return empty list []
+    def __get_available_render_threads(self):
+        render_threads = []
+        
+        # collect available render thread
+        index = 0
+        for processor in self.__render_threads:
+            if (processor.__class__.__name__ == 'Thread'\
+                and not processor.isAlive()) or processor == None:
+                render_threads.append[index]
+                
+            index += 1
+            
+        return render_threads
     
     # send message to server
     # report client process to server
@@ -98,7 +141,11 @@ class NodeRender(Thread, Constants):
         node_info[NodeRender.C_STR_CPU_NUM] = psutil.cpu_count()
         
         # get per cpu utilization
-        node_info[NodeRender.C_STR_CPU_USAGE] = psutil.cpu_percent(interval=1, percpu=True)
+        cpu_usage = psutil.cpu_percent(interval=1, percpu=True)
+        node_info[NodeRender.C_STR_CPU_USAGE] = cpu_usage
+        
+        # get average cpu load
+        node_info[NodeRender.C_STR_CPU_USAGE_AVR] = sum(cpu_usage)/len(cpu_usage)
         
         # get memory usage
         node_info[NodeRender.C_STR_MEMORY_USED] = psutil.phymem_usage().used
@@ -109,6 +156,9 @@ class NodeRender(Thread, Constants):
         
         # get os name from client
         node_info[NodeRender.C_STR_OS_HOSTNAME] = socket.gethostname()
+        
+        # get total thread running from client
+        node_info[NodeRender.C_STR_RUNNING_THREAD] = self.__get_render_threads_running_count()
         
         if os.access(config[NodeRender.C_STR_SHARED], os.W_OK):
             # add access shared location info
