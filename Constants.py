@@ -30,10 +30,13 @@ class Constants():
     C_STR_DATA_TYPE = 'data_type'
     C_STR_MEMORY_USED = 'memory_used'
     C_STR_CPU_NUM = 'cpu_num'
+    C_STR_LOAD_FACTOR = 'load_factor'
     C_STR_LAST_CONNECTED = 'last_connected'
     C_STR_OS_PLATFORM = 'os_platform'
     C_STR_OS_HOSTNAME = 'os_hostname'
     C_STR_RUNNING_THREAD = 'running_thread'
+    
+    C_NUM_MAX_FRAME_TO_RENDER_QUEUE = 1000
     
     C_STR_STATUS = 'status'
     
@@ -67,4 +70,10 @@ class Constants():
     C_STR_SCENE_FRAME_END = 'frame_end'
     C_STR_SCENE_FRAME_STEP = 'frame_step'
     
+    C_STR_INFO_FILE = 'info.xml'
+    C_STR_FRAME = 'frame'
+    C_STR_FORMAT_TYPE = 'format_type'
+    C_STR_FRAME_RENDER_STATUS = 'frame_render_status'
+    C_STR_ID = 'id'
+    C_STR_NODE_HANDLER = 'node_handler'
     

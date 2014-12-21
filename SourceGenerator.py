@@ -14,16 +14,16 @@ from Constants import Constants
 class SourceGenerator(Constants):
 
     def __init__(self, config):
-        self.__source_folder = config[SourceGenerator.C_STR_SOURCE]
-        self.__blender_location = config[SourceGenerator.C_STR_BLENDER]
-        self.__shared_location = config[SourceGenerator.C_STR_SHARED]
+        self._source_folder = config[SourceGenerator.C_STR_SOURCE]
+        self._blender_location = config[SourceGenerator.C_STR_BLENDER]
+        self._shared_location = config[SourceGenerator.C_STR_SHARED]
         
         self.__get_blend_file()
         
     # get all .blend file
     def __get_blend_file(self):
     
-        blend_files = glob.glob(self.__source_folder+'/*.blend')
+        blend_files = glob.glob(self._source_folder+'/*.blend')
         
         # check folder is exist or not, if exist rename folder into new backup folder
         # then create new folder with configuration file
@@ -40,7 +40,7 @@ class SourceGenerator(Constants):
             dir_name = blend_file.replace('.blend', '')
             
             # get blend file name
-            file_name = blend_file.replace(self.__source_folder, dir_name)
+            file_name = blend_file.replace(self._source_folder, dir_name)
             
             if os.path.isdir(dir_name):
                 # rename old directory into .back.backup_time
@@ -55,10 +55,11 @@ class SourceGenerator(Constants):
                 shutil.move(blend_file, dir_name)
                 
             # run blender in background to get information
-            os.system(self.__blender_location + ' -b ' + file_name + ' -P GetBlendSceneInfo.py')
+            #os.system(self._blender_location + ' -b ' + file_name + ' -P GetBlendSceneInfo.py')
+            subprocess.call(self._blender_location + ' -b ' + file_name + ' -P GetBlendSceneInfo.py', shell=True)
             
             print('do: generate info.xml for ' + blend_file)
             # move info.xml into dir_name
-            shutil.move(os.getcwd() + '/info.xml', dir_name)
+            shutil.move(os.getcwd() + '/' + SourceGenerator.C_STR_INFO_FILE, dir_name)
             
             print('confirm: generate source success')

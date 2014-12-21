@@ -11,11 +11,16 @@ class GetBlendSceneInfo():
     C_STR_SCENE_FRAME_START = 'frame_start'
     C_STR_SCENE_FRAME_END = 'frame_end'
     C_STR_SCENE_FRAME_STEP = 'frame_step'
+    C_STR_INFO_FILE = 'info.xml'
+    C_STR_FRAME = 'frame'
+    C_STR_FORMAT_TYPE = 'format_type'
+    C_STR_FRAME_RENDER_STATUS = 'frame_render_status'
+    C_STR_ID = 'id'
+    C_STR_NODE_HANDLER = 'node_handler'
     
     
     def __init__(self):
         self.__get_scene_info()
-        self.__info_scene_file = 'info.xml'
         
     # get scene information
     # get scene name
@@ -31,6 +36,13 @@ class GetBlendSceneInfo():
             scene_item.set(GetBlendSceneInfo.C_STR_SCENE_FRAME_END, str(scene.frame_end))
             scene_item.set(GetBlendSceneInfo.C_STR_SCENE_FRAME_STEP, str(scene.frame_step))
             
-        ET.ElementTree(scene_info).write(self.__info_scene_file, encoding='UTF-8')
+            for index in range(scene.frame_start, (scene.frame_end + 1)):
+                scene_frame_item = ET.SubElement(scene_item, GetBlendSceneInfo.C_STR_FRAME)
+                scene_frame_item.set(GetBlendSceneInfo.C_STR_FORMAT_TYPE, '')
+                scene_frame_item.set(GetBlendSceneInfo.C_STR_FRAME_RENDER_STATUS, str(0))
+                scene_frame_item.set(GetBlendSceneInfo.C_STR_ID, str(index))
+                scene_frame_item.set(GetBlendSceneInfo.C_STR_NODE_HANDLER, str(0))
+            
+        ET.ElementTree(scene_info).write(GetBlendSceneInfo.C_STR_INFO_FILE, encoding='UTF-8')
             
 GetBlendSceneInfo()
