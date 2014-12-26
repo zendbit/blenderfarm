@@ -15,7 +15,7 @@ from Constants import Constants
 # this class handle client script
 # check if shared forlder is exist and write able
 # if ho access return fail access shared folder to server
-class NodeRender(Thread, Constants):
+class NodeRender(Thread):
     
     # initialize config file
     def __init__(self):
@@ -28,7 +28,7 @@ class NodeRender(Thread, Constants):
         ip_addr = socket.gethostbyname(socket.gethostname())
         
         # set filename status node
-        self._node_status_file = NodeRender.C_STR_NODE_STATUS_FOLDER+'node_status.'+ip_addr+'.xml'
+        self._node_status_file = Constants.C_STR_NODE_STATUS_FOLDER+'node_status.'+ip_addr+'.xml'
         
         # set node status
         self.set_node_status(1)
@@ -63,7 +63,7 @@ class NodeRender(Thread, Constants):
                 print('exception: error while connecting to server')
                 print(e)
                 
-            time.sleep(NodeRender.C_NUM_NODE_RENDER_SLEEP_TIME)
+            time.sleep(Constants.C_NUM_NODE_RENDER_SLEEP_TIME)
         
     
     # initialize thread processor
@@ -131,11 +131,11 @@ class NodeRender(Thread, Constants):
     
     # send node render information
     def __send_node_renderinfo(self, config):
-        self.__send_message(config[NodeRender.C_STR_IP], config[NodeRender.C_STR_PORT], json.dumps(self.__get_node_info(config)))
+        self.__send_message(config[Constants.C_STR_IP], config[Constants.C_STR_PORT], json.dumps(self.__get_node_info(config)))
         
     # send node information
     def __send_node_cpuinfo(self, config):
-        self.__send_message(config[NodeRender.C_STR_IP], config[NodeRender.C_STR_PORT], json.dumps(self.__get_node_info(config)))
+        self.__send_message(config[Constants.C_STR_IP], config[Constants.C_STR_PORT], json.dumps(self.__get_node_info(config)))
     
     # get cpu information
     def __get_node_info(self, config):
@@ -143,15 +143,15 @@ class NodeRender(Thread, Constants):
         node_info = {}
     
         # add cpu report type as status cpu infomation
-        node_info[NodeRender.C_STR_DATA_TYPE] = NodeRender.C_STR_DATA_CPU
+        node_info[Constants.C_STR_DATA_TYPE] = Constants.C_STR_DATA_CPU
         
         # get cpu count
         cpus_count = psutil.cpu_count()
-        node_info[NodeRender.C_STR_CPU_NUM] = cpus_count
+        node_info[Constants.C_STR_CPU_NUM] = cpus_count
         
         # get total thread running from client
         threads_count = self.__get_render_threads_running_count()
-        node_info[NodeRender.C_STR_RUNNING_THREAD] = threads_count
+        node_info[Constants.C_STR_RUNNING_THREAD] = threads_count
         
         # set load factor
         # load factor value between 0 - 1
@@ -160,32 +160,32 @@ class NodeRender(Thread, Constants):
         if threads_count != load_factor:
             load_factor = float(threads_count)/cpus_count
             
-        node_info[NodeRender.C_STR_LOAD_FACTOR] = load_factor
+        node_info[Constants.C_STR_LOAD_FACTOR] = load_factor
         
         # get per cpu utilization
         cpu_usage = psutil.cpu_percent(interval=1, percpu=True)
-        node_info[NodeRender.C_STR_CPU_USAGE] = cpu_usage
+        node_info[Constants.C_STR_CPU_USAGE] = cpu_usage
         
         # get average cpu load
-        node_info[NodeRender.C_STR_CPU_USAGE_AVR] = sum(cpu_usage)/float(len(cpu_usage))
+        node_info[Constants.C_STR_CPU_USAGE_AVR] = sum(cpu_usage)/float(len(cpu_usage))
         
         # get memory usage
-        node_info[NodeRender.C_STR_MEMORY_USED] = psutil.phymem_usage().used
-        node_info[NodeRender.C_STR_MEMORY_FREE] = psutil.phymem_usage().free
+        node_info[Constants.C_STR_MEMORY_USED] = psutil.phymem_usage().used
+        node_info[Constants.C_STR_MEMORY_FREE] = psutil.phymem_usage().free
         
         # get os platform from client
-        node_info[NodeRender.C_STR_OS_PLATFORM] = sys.platform
+        node_info[Constants.C_STR_OS_PLATFORM] = sys.platform
         
         # get os name from client
-        node_info[NodeRender.C_STR_OS_HOSTNAME] = socket.gethostname()
+        node_info[Constants.C_STR_OS_HOSTNAME] = socket.gethostname()
         
-        if os.access(config[NodeRender.C_STR_SHARED], os.W_OK):
+        if os.access(config[Constants.C_STR_SHARED], os.W_OK):
             # add access shared location info
-            node_info[NodeRender.C_STR_SHARED_LOCATION_ACCESS] = NodeRender.C_NUM_SHARED_WRITE_OK
+            node_info[Constants.C_STR_SHARED_LOCATION_ACCESS] = Constants.C_NUM_SHARED_WRITE_OK
                         
         else:
             # add access shared locaiton info
-            node_info[NodeRender.C_STR_SHARED_LOCATION_ACCESS] = NodeRender.C_NUM_SHARED_WRITE_NONE
+            node_info[Constants.C_STR_SHARED_LOCATION_ACCESS] = Constants.C_NUM_SHARED_WRITE_NONE
         
         return node_info
         
@@ -197,15 +197,15 @@ class NodeRender(Thread, Constants):
         if not os.path.isfile(self._node_status_file):
             
             # create file server info file
-            node_status = ET.Element(NodeRender.C_STR_NODE)
-            node_status.set(NodeRender.C_STR_STATUS, str(status))
+            node_status = ET.Element(Constants.C_STR_NODE)
+            node_status.set(Constants.C_STR_STATUS, str(status))
             
             ET.ElementTree(node_status).write(self._node_status_file, encoding='UTF-8')
             
         else:
             node_status = ET.parse(self._node_status_file).getroot()
             
-            node_status.set(NodeRender.C_STR_STATUS, str(status))
+            node_status.set(Constants.C_STR_STATUS, str(status))
             
             # write to xml
             ET.ElementTree(node_status).write(self._node_status_file, encoding='UTF-8')
@@ -213,7 +213,7 @@ class NodeRender(Thread, Constants):
     # get status node
     def get_node_status(self):
         node_info = ET.parse(self._node_status_file).getroot()
-        return int(node_info.attrib[NodeRender.C_STR_STATUS])
+        return int(node_info.attrib[Constants.C_STR_STATUS])
         
     # start service
     def start_service(self):

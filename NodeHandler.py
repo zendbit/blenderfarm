@@ -9,7 +9,7 @@ import base64
 from Config import Config
 from Constants import Constants
 
-class NodeHandler(socketserver.BaseRequestHandler, Constants):
+class NodeHandler(socketserver.BaseRequestHandler):
 
     # Handle node render request
     # override handle method
@@ -28,10 +28,10 @@ class NodeHandler(socketserver.BaseRequestHandler, Constants):
             
             # check info type of node data
             # handle with multithread
-            if node_info[NodeHandler.C_STR_DATA_TYPE] == NodeHandler.C_STR_DATA_CPU:
+            if node_info[Constants.C_STR_DATA_TYPE] == Constants.C_STR_DATA_CPU:
                 threading.Thread(target=NodeHandler._NODE_MONITOR_INSTANCE.update_node_cpuinfo, args=(self.client_address[0], node_info)).start()
             
-            if node_info[NodeHandler.C_STR_DATA_TYPE] == NodeHandler.C_STR_DATA_RENDER:
+            if node_info[Constants.C_STR_DATA_TYPE] == Constants.C_STR_DATA_RENDER:
                 print('render data')
             
             # self.request.sendall(bytes('ok', 'UTF-8'))

@@ -1,8 +1,10 @@
 <?xml version="1.0"?>
 <config>
     <server ip="127.0.0.1" port="8888"/>
-    <blender location="/usr/bin/blender"/>
-    <shared location="/home/amru/Documents/Development/Blender"/>
-    <source folder="/Source"/>
-    <output folder="/Output"/>
+    <blender os_platform="darwin" location="blender/blender-2.72b-linux-glibc211-x86_64/blender"/>
+    <blender os_platform="linux" location="blender/blender-2.72b-linux-glibc211-x86_64/blender"/>
+    <blender os_platform="win" location="blender/blender-2.72b-linux-glibc211-x86_64/blender"/>
+    <shared os_family="unix" location="/home/amru/Documents/Development/Blender"/>
+    <shared os_family="windows" location="/home/amru/Documents/Development/Blender"/>
+    <source folder="Source"/>
 </config>

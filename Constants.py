@@ -56,7 +56,17 @@ class Constants():
     C_STR_BLENDER = 'blender'
     C_STR_SOURCE = 'source'
     C_STR_FOLDER = 'folder'
-    C_STR_OUTPUT = 'output'
+    C_STR_OS_PLATFORM = 'os_platform'
+    C_STR_OS_FAMILY = 'os_family'
+    
+    # os family linux or darwin or win
+    C_STR_OS_PLATFORM_LINUX = 'linux'
+    C_STR_OS_PLATFORM_DARWIN = 'darwin'
+    C_STR_OS_PLATFORM_WINDOWS = 'win'
+    
+    # for define path to shared location unix or windows
+    C_STR_OS_FAMILY_UNIX = 'unix'
+    C_STR_OS_FAMILY_WINDOWS = 'windows'
     
     C_STR_CONFIG_FILE = 'config.xml'
     
@@ -65,10 +75,12 @@ class Constants():
     ######################
     C_STR_SCENES = 'scenes'
     C_STR_SCENE = 'scene'
-    C_STR_SCENE_NAME = 'name'
-    C_STR_SCENE_FRAME_START = 'frame_start'
-    C_STR_SCENE_FRAME_END = 'frame_end'
-    C_STR_SCENE_FRAME_STEP = 'frame_step'
+    C_STR_NAME = 'name'
+    C_STR_FRAME_START = 'frame_start'
+    C_STR_FRAME_END = 'frame_end'
+    C_STR_FRAME_STEP = 'frame_step'
+    C_STR_RENDER_STATUS = 'render_status'
+    C_STR_RENDER_PRIORITY = 'render_priority'
     
     C_STR_INFO_FILE = 'info.xml'
     C_STR_FRAME = 'frame'
@@ -76,4 +88,29 @@ class Constants():
     C_STR_FRAME_RENDER_STATUS = 'frame_render_status'
     C_STR_ID = 'id'
     C_STR_NODE_HANDLER = 'node_handler'
+    C_STR_NEED_TO_RENDER = 'need_to_render'
+    
+    # status  render of file
+    C_NUM_RENDER_START = 1
+    C_NUM_RENDER_STOP = 0
+    C_STR_RENDER_START = 'render_start'
+    C_STR_RENDER_STOP = 'render_stop'
+    
+    # status render frame
+    C_NUM_FRAME_RENDER_COMPLETED = 1
+    C_NUM_FRAME_RENDER_UNCOMPLETE = 0
+    
+    # need to render flag
+    C_NUM_NEED_TO_RENDER_TRUE = 1
+    C_NUM_NEED_TO_RENDER_FALSE = 0
+    
+    # render priority
+    C_NUM_RENDER_PRIORITY_HIGH = 3
+    C_NUM_RENDER_PRIORITY_NORMAL = 2
+    C_NUM_RENDER_PRIORITY_LOW = 1
+    
+    C_STR_RENDER_COMPLETED = 'render_completed'
+    C_STR_RENDER_UNCOMPLETED = 'render_uncompleted'
+    C_STR_NOT_RENDERED = 'not_rendered'
+    
     

@@ -11,19 +11,19 @@ from Constants import Constants
 # this file generate .blend into source to be processed
 # this will generate folder name, named as file name
 
-class SourceGenerator(Constants):
+class SourceGenerator():
 
     def __init__(self, config):
-        self._source_folder = config[SourceGenerator.C_STR_SOURCE]
-        self._blender_location = config[SourceGenerator.C_STR_BLENDER]
-        self._shared_location = config[SourceGenerator.C_STR_SHARED]
+        self._source_folder = config[Constants.C_STR_SOURCE]
+        self._blender_location = config[Constants.C_STR_BLENDER]
+        self._shared_location = config[Constants.C_STR_SHARED]
         
         self.__get_blend_file()
         
     # get all .blend file
     def __get_blend_file(self):
     
-        blend_files = glob.glob(self._source_folder+'/*.blend')
+        blend_files = glob.glob(self._source_folder + os.path.sep + '*.blend')
         
         # check folder is exist or not, if exist rename folder into new backup folder
         # then create new folder with configuration file
@@ -60,6 +60,6 @@ class SourceGenerator(Constants):
             
             print('do: generate info.xml for ' + blend_file)
             # move info.xml into dir_name
-            shutil.move(os.getcwd() + '/' + SourceGenerator.C_STR_INFO_FILE, dir_name)
+            shutil.move(os.getcwd() + '/' + Constants.C_STR_INFO_FILE, dir_name)
             
             print('confirm: generate source success')
