@@ -13,6 +13,7 @@ class Config():
         self._shared_location = None
         self._blender_location = None
         self._source_folder = None
+        self._protocol = None
         
         self._config_tree = ET.parse(Constants.C_STR_CONFIG_FILE)
         self._config_root = self._config_tree.getroot()
@@ -25,6 +26,7 @@ class Config():
         # get properties config file
         self._server_ip = self._config_root.find('./' + Constants.C_STR_SERVER).attrib[Constants.C_STR_IP]
         self._server_port = self._config_root.find('./' + Constants.C_STR_SERVER).attrib[Constants.C_STR_PORT]
+        self._protocol = self._config_root.find('./' + Constants.C_STR_SERVER).attrib[Constants.C_STR_PROTOCOL]
         
         # check os type
         # linux, or windows or darwin
@@ -89,5 +91,6 @@ class Config():
         config[Constants.C_STR_SHARED] = self._shared_location
         config[Constants.C_STR_BLENDER] = self._blender_location
         config[Constants.C_STR_SOURCE] = self._source_folder
+        config[Constants.C_STR_PROTOCOL] = self._protocol
         
         return config

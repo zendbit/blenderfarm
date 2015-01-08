@@ -18,10 +18,11 @@ class SourceGenerator():
         self._blender_location = config[Constants.C_STR_BLENDER]
         self._shared_location = config[Constants.C_STR_SHARED]
         
-        self.__get_blend_file()
+    def check_blend_file(self):
+        self._get_blend_file()
         
     # get all .blend file
-    def __get_blend_file(self):
+    def _get_blend_file(self):
     
         blend_files = glob.glob(self._source_folder + os.path.sep + '*.blend')
         
@@ -37,7 +38,12 @@ class SourceGenerator():
             print('do: generate source ' + blend_file)
             
             # get .blend position from right
+            # define dir_name
+            # define frames_dir_name
+            # define tiles_dir_name
             dir_name = blend_file.replace('.blend', '')
+            frames_dir_name = dir_name + os.path.sep + Constants.C_STR_FRAME
+            tiles_dir_name = dir_name + os.path.sep + Constants.C_STR_TILE
             
             # get blend file name
             file_name = blend_file.replace(self._source_folder, dir_name)
@@ -46,7 +52,7 @@ class SourceGenerator():
                 # rename old directory into .back.backup_time
                 os.rename(dir_name, dir_name+'_'+c_datetime+'_back')
                 os.mkdir(dir_name, 0o777)
-                os.chmod(dir_name, stat.S_IRWXO|stat.S_IRWXU|stat.S_IRWXG)  
+                os.chmod(dir_name, stat.S_IRWXO|stat.S_IRWXU|stat.S_IRWXG)
                 shutil.move(blend_file, dir_name)
             else:
                 # create directory if not exist
@@ -54,8 +60,19 @@ class SourceGenerator():
                 os.chmod(dir_name, stat.S_IRWXO|stat.S_IRWXU|stat.S_IRWXG)
                 shutil.move(blend_file, dir_name)
                 
+            # create frames directory
+            if not os.path.isdir(frames_dir_name):
+                os.mkdir(frames_dir_name, 0o777)
+                os.chmod(frames_dir_name, stat.S_IRWXO|stat.S_IRWXU|stat.S_IRWXG)
+                
+            # create tiles directory
+            if not os.path.isdir(tiles_dir_name):
+                os.mkdir(tiles_dir_name, 0o777)
+                os.chmod(tiles_dir_name, stat.S_IRWXO|stat.S_IRWXU|stat.S_IRWXG)
+            
+            # create tiles directory
+                
             # run blender in background to get information
-            #os.system(self._blender_location + ' -b ' + file_name + ' -P GetBlendSceneInfo.py')
             subprocess.call(self._blender_location + ' -b ' + file_name + ' -P GetBlendSceneInfo.py', shell=True)
             
             print('do: generate info.xml for ' + blend_file)
