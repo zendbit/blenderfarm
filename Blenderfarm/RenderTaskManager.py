@@ -424,9 +424,9 @@ class RenderTaskManager():
             ET.ElementTree(info_file).write(info_file_name, encoding='UTF-8')
             
 if __name__ == '__main__':
-    RenderTaskManager(Config().get_config()).set_scene_to_render({Constants.C_STR_ID: 'bob_lamp_update_1', Constants.C_STR_NAME: 'Scene', Constants.C_STR_FRAME: '', Constants.C_STR_RENDER_STATUS: Constants.C_NUM_RENDER_START, Constants.C_STR_NEED_TO_RENDER: Constants.C_NUM_NEED_TO_RENDER_TRUE})
+    #RenderTaskManager(Config().get_config()).set_scene_to_render({Constants.C_STR_ID: 'bob_lamp_update_1', Constants.C_STR_NAME: 'Scene', Constants.C_STR_FRAME: '', Constants.C_STR_RENDER_STATUS: Constants.C_NUM_RENDER_START, Constants.C_STR_NEED_TO_RENDER: Constants.C_NUM_NEED_TO_RENDER_TRUE})
     #print(base64.b64decode(RenderTaskManager(Config().get_config()).get_scenes_to_render(return_type='json')))
-    #print(RenderTaskManager(Config().get_config()).get_scene_to_process())
+    print(RenderTaskManager(Config().get_config()).get_scene_to_process())
     #a = RenderTaskManager(Config().get_config()).pop_render_task()
     #print(RenderTaskManager(Config().get_config()).is_info_file_exist(a[Constants.C_STR_ID]))
     #print(RenderTaskManager(Config().get_config()).pause_all_scenes(False))

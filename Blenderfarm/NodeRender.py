@@ -56,6 +56,7 @@ class NodeRender(Thread):
                             
                             if len(render_data):
                                 self._do_render(render_data)
+                                
                     except Exception as e:
                         print(e)
                         if self._task_manager.is_task_file_locked():
@@ -121,14 +122,20 @@ class NodeRender(Thread):
     def _is_frame_render_complete(self, render_data):
         # if tiles of frame render complete then merge tile into frame
         # merge file will named as format folder_id_scene_name_frame
-        tiles_frame = self._tile_output_folder(render_data)\
+        tiles_frame = self._get_tile_output_folder(render_data)\
             + os.path.sep + render_data[Constants.C_STR_ID]\
             + '_' + render_data[Constants.C_STR_NAME]\
             + '_' + render_data[Constants.C_STR_FRAME] + '_*'
             
         # if render complete
         # num tiles each frame must equals with square root of Constants.C_NUM_RENDER_SPLIT
-        if len(glob.glob(tiles_frame)) == (Constants.C_NUM_RENDER_SPLIT * Constants.C_NUM_RENDER_SPLIT):
+        if os.path.isfile(self._get_frame_output_file_name(render_data)):
+            return True
+            
+        elif os.path.isfile(self._get_frame_output_completed_file_name(render_data)):
+            return True
+            
+        elif len(glob.glob(tiles_frame)) == (Constants.C_NUM_RENDER_SPLIT * Constants.C_NUM_RENDER_SPLIT):
             # merge image if render completed
             self._merge_image(render_data)
             
@@ -139,11 +146,12 @@ class NodeRender(Thread):
                 frame_ok.close()
             
             return True
+            
         else:
             return False
     
     # get tile name
-    def _tile_output_folder(self, render_data):
+    def _get_tile_output_folder(self, render_data):
         output_folder = self._config[Constants.C_STR_SOURCE]\
             + os.path.sep + render_data[Constants.C_STR_ID]\
             + os.path.sep + Constants.C_STR_TILE
@@ -190,7 +198,7 @@ class NodeRender(Thread):
     
     # merge render data
     def _merge_image(self, render_data):
-        tile_data_prefix = self._tile_output_folder(render_data)\
+        tile_data_prefix = self._get_tile_output_folder(render_data)\
             + os.path.sep\
             + render_data[Constants.C_STR_ID]\
             + '_' + render_data[Constants.C_STR_NAME]\
@@ -226,7 +234,7 @@ class NodeRender(Thread):
                 
     # get do render
     def _do_render(self, render_data):
-                
+    
         if not self._is_frame_render_complete(render_data):
             # check if blender file is exist
             blend_file = self._config[Constants.C_STR_SOURCE]\
