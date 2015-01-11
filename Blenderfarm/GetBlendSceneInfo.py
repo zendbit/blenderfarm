@@ -1,6 +1,7 @@
 import bpy
 import xml.etree.ElementTree as ET
 import time
+import os
 
 # this file pass to blender -b
 # to generate file info for blender file information in xml format
@@ -17,7 +18,7 @@ class GetBlendSceneInfo():
     C_STR_RENDER_PRIORITY = 'render_priority'
     C_STR_RESOLUTION_X = 'resolution_x'
     C_STR_RESOLUTION_Y = 'resolution_y'
-    C_NUM_RENDER_SPLIT = 2
+    C_NUM_RENDER_SPLIT = 4
     C_NUM_RENDER_SCALE = 1.0
     C_NUM_RENDER_SIZE = C_NUM_RENDER_SCALE / C_NUM_RENDER_SPLIT
     C_STR_STATUS = 'status'
@@ -48,6 +49,56 @@ class GetBlendSceneInfo():
     # get scene frame_end
     # get scene frame_step
     def __get_scene_info(self):
+    
+        # check modifier for simulation
+        # if simulation type generate bake cache
+        # generate bake for physic simulation
+        bake = False
+        ocean_bake = False
+        
+        for scene in bpy.data.scenes:
+            for object in scene.objects:
+                for modifier in object.modifiers:
+                
+                    if modifier.type == 'CLOTH' or modifier.type == 'SOFT_BODY':
+                        modifier.point_cache.use_disk_cache = True
+                        bake = True
+                        
+                    if modifier.type == 'SMOKE':
+                        modifier.domain_settings.point_cache.use_external = True
+                        bake = True
+                        
+                    if modifier.type == 'DYNAMIC_PAINT':
+                        if len(modifier.canvas_settings.canvas_surfaces):
+                            bake = True
+                            
+                    if modifier.type == 'PARTICLE_SYSTEM':
+                        modifier.particle_system.point_cache.use_disk_cache = True
+                        bake = True
+                        
+                    if modifier.type == 'OCEAN':
+                        modifier.particle_system.point_cache.use_disk_cache = True
+                        ocean_bake = True
+                        
+                    if modifier.type == 'COLLISION'\
+                        or modifier.type == 'FLUID_SIMULATION'\
+                        or modifier.type == 'COLLISION'\
+                        or modifier.type == 'PARTICLE_INSTANCE'\
+                        or modifier.type == 'EXPLODE':
+                        bake = True
+            
+        # bake all phy simulation
+        bpy.ops.ptcache.free_bake_all()
+        if bake:
+            bpy.ops.ptcache.bake_all(bake=True)
+        if ocean_bake:
+            bpy.ops.object.ocean_bake(free=False)
+            
+        bpy.ops.wm.save_as_mainfile(filepath=bpy.data.filepath, check_existing=False)
+        
+        # delete backup saved file
+        os.remove(bpy.data.filepath + '1')
+        
         scene_info = ET.Element(GetBlendSceneInfo.C_STR_SCENES)
         for scene in bpy.data.scenes:
             scene_item = ET.SubElement(scene_info, GetBlendSceneInfo.C_STR_SCENE)

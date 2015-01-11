@@ -11,7 +11,6 @@ import base64
 from urllib import request
 import subprocess
 import glob
-from PIL import Image
 import stat
 
 from Config import Config
@@ -117,125 +116,11 @@ class NodeRender(Thread):
     # send node information
     def _send_node_cpuinfo(self):
         self._send_message(json.dumps(self._get_node_info(config)))
-    
-    # check if render process tiles of frame is complete
-    def _is_frame_render_complete(self, render_data):
-        # if tiles of frame render complete then merge tile into frame
-        # merge file will named as format folder_id_scene_name_frame
-        tiles_frame = self._get_tile_output_folder(render_data)\
-            + os.path.sep + render_data[Constants.C_STR_ID]\
-            + '_' + render_data[Constants.C_STR_NAME]\
-            + '_' + render_data[Constants.C_STR_FRAME] + '_*'
-            
-        # if render complete
-        # num tiles each frame must equals with square root of Constants.C_NUM_RENDER_SPLIT
-        if os.path.isfile(self._get_frame_output_file_name(render_data)):
-            return True
-            
-        elif os.path.isfile(self._get_frame_output_completed_file_name(render_data)):
-            return True
-            
-        elif len(glob.glob(tiles_frame)) == (Constants.C_NUM_RENDER_SPLIT * Constants.C_NUM_RENDER_SPLIT):
-            # merge image if render completed
-            self._merge_image(render_data)
-            
-            # create completed frame flag
-            if not os.path.isfile(self._get_frame_output_completed_file_name(render_data)):
-                frame_ok = open(self._get_frame_output_completed_file_name(render_data), 'w')
-                frame_ok.write('')
-                frame_ok.close()
-            
-            return True
-            
-        else:
-            return False
-    
-    # get tile name
-    def _get_tile_output_folder(self, render_data):
-        output_folder = self._config[Constants.C_STR_SOURCE]\
-            + os.path.sep + render_data[Constants.C_STR_ID]\
-            + os.path.sep + Constants.C_STR_TILE
-            
-        return output_folder
-        
-    # get frame output folder
-    def _get_frame_output_folder_name(self, render_data):
-        output_folder = self._config[Constants.C_STR_SOURCE]\
-            + os.path.sep + render_data[Constants.C_STR_ID]\
-            + os.path.sep + Constants.C_STR_FRAME
-            
-        return output_folder
-        
-    # get output frame name
-    def _get_frame_output_file_name(self, render_data):
-        zero_prefix = 10 - len(render_data[Constants.C_STR_FRAME])
-        zero_prefix = '0' * zero_prefix
-        
-        frame_output_name = self._get_frame_output_folder_name(render_data)\
-            + os.path.sep + render_data[Constants.C_STR_NAME]\
-            + '_' + zero_prefix + render_data[Constants.C_STR_FRAME] + '.png'
-            
-        return frame_output_name
-        
-    def _get_frame_output_completed_file_name(self, render_data):
-        zero_prefix = 10 - len(render_data[Constants.C_STR_FRAME])
-        zero_prefix = '0' * zero_prefix
-         
-        completed_frame_folder = self._config[Constants.C_STR_SOURCE] + os.path.sep + Constants.C_STR_COMPLETED_FRAME
-        
-        frame_output_completed_frame = completed_frame_folder\
-            + os.path.sep + render_data[Constants.C_STR_ID]\
-            + '_' + render_data[Constants.C_STR_NAME]\
-            + '_' + zero_prefix + render_data[Constants.C_STR_FRAME] + '.ok'
-            
-        # check if output frame folder not exist
-        # create it
-        if not os.path.isdir(completed_frame_folder):
-            os.mkdir(completed_frame_folder, 0o777)
-            os.chmod(completed_frame_folder, stat.S_IRWXO|stat.S_IRWXU|stat.S_IRWXG)
-            
-        return frame_output_completed_frame
-    
-    # merge render data
-    def _merge_image(self, render_data):
-        tile_data_prefix = self._get_tile_output_folder(render_data)\
-            + os.path.sep\
-            + render_data[Constants.C_STR_ID]\
-            + '_' + render_data[Constants.C_STR_NAME]\
-            + '_' + render_data[Constants.C_STR_FRAME]
-            
-        resolution_x = int(render_data[Constants.C_STR_RESOLUTION_X])
-        resolution_y = int(render_data[Constants.C_STR_RESOLUTION_Y])
-           
-        x_increment = resolution_x/Constants.C_NUM_RENDER_SPLIT
-        y_increment = resolution_y/Constants.C_NUM_RENDER_SPLIT
-        
-        new_im = Image.new('RGBA', (int(resolution_x), int(resolution_y)))
-        x_position = 0
-        y_position = 0
-        
-        for x in range(0, Constants.C_NUM_RENDER_SPLIT):
-            # reset y postition
-            y_position = 0
-            
-            for y in range(Constants.C_NUM_RENDER_SPLIT - 1, -1, -1): # reverse y axis blender is from bottom left, pil is from top left
-                tile_image = Image.open(tile_data_prefix + '_' + str(x) + '_' + str(y) + '.png')
-                tile_width, tile_height = tile_image.size
-                
-                new_im.paste(tile_image, (x_position, y_position))
-                
-                y_position += tile_height
-                
-                if not y:
-                    x_position += tile_width
-        
-        if not os.path.isfile(self._get_frame_output_file_name(render_data)):
-            new_im.save(self._get_frame_output_file_name(render_data), 'png')
                 
     # get do render
     def _do_render(self, render_data):
     
-        if not self._is_frame_render_complete(render_data):
+        if not self._task_manager.is_frame_render_complete(render_data):
             # check if blender file is exist
             blend_file = self._config[Constants.C_STR_SOURCE]\
                 + os.path.sep\
@@ -265,7 +150,7 @@ class NodeRender(Thread):
                 subprocess.call(render_cmd, shell=True)
                 
                 # call check render complete
-                self._is_frame_render_complete(render_data)
+                self._task_manager.is_frame_render_complete(render_data)
     
     # get cpu information
     def _get_node_info(self):

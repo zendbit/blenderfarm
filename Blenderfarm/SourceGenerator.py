@@ -14,9 +14,7 @@ from Constants import Constants
 class SourceGenerator():
 
     def __init__(self, config):
-        self._source_folder = config[Constants.C_STR_SOURCE]
-        self._blender_location = config[Constants.C_STR_BLENDER]
-        self._shared_location = config[Constants.C_STR_SHARED]
+        self._config = config
         
     def check_blend_file(self):
         self._get_blend_file()
@@ -24,7 +22,7 @@ class SourceGenerator():
     # get all .blend file
     def _get_blend_file(self):
     
-        blend_files = glob.glob(self._source_folder + os.path.sep + '*.blend')
+        blend_files = glob.glob(self._config[Constants.C_STR_SOURCE] + os.path.sep + '*.blend')
         
         # check folder is exist or not, if exist rename folder into new backup folder
         # then create new folder with configuration file
@@ -46,11 +44,11 @@ class SourceGenerator():
             tiles_dir_name = dir_name + os.path.sep + Constants.C_STR_TILE
             
             # get blend file name
-            file_name = blend_file.replace(self._source_folder, dir_name)
+            file_name = blend_file.replace(self._config[Constants.C_STR_SOURCE], dir_name)
             
             if os.path.isdir(dir_name):
                 # rename old directory into .back.backup_time
-                os.rename(dir_name, dir_name+'_'+c_datetime+'_back')
+                os.rename(dir_name, dir_name+'_'+c_datetime+'.backup')
                 os.mkdir(dir_name, 0o777)
                 os.chmod(dir_name, stat.S_IRWXO|stat.S_IRWXU|stat.S_IRWXG)
                 shutil.move(blend_file, dir_name)
@@ -73,7 +71,7 @@ class SourceGenerator():
             # create tiles directory
                 
             # run blender in background to get information
-            subprocess.call(self._blender_location + ' -b ' + file_name + ' -P GetBlendSceneInfo.py', shell=True)
+            subprocess.call(self._config[Constants.C_STR_BLENDER] + ' -b ' + file_name + ' -P GetBlendSceneInfo.py' + ' -t 32 ', shell=True)
             
             print('do: generate info.xml for ' + blend_file)
             # move info.xml into dir_name

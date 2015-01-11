@@ -3,6 +3,7 @@ import glob
 import xml.etree.ElementTree as ET
 import json
 import base64
+from PIL import Image
 
 from Config import Config
 from Constants import Constants
@@ -38,6 +39,10 @@ class RenderTaskManager():
         for folder in source_file:
             if os.path.isdir(folder):
             
+                # if file contain .backup just skip it
+                if folder.find('.backup') != -1:
+                    continue
+                            
                 info_file_name = folder + os.path.sep + Constants.C_STR_INFO_FILE
                 
                 if os.path.isfile(info_file_name):
@@ -49,6 +54,7 @@ class RenderTaskManager():
                         
                         data_info_item = {}
                         file_id = folder.split(os.path.sep)[-1]
+                        
                         data_info_item[Constants.C_STR_ID] = file_id
                         data_info_item[Constants.C_STR_NAME] = info_item.attrib[Constants.C_STR_NAME]
                         data_info_item[Constants.C_STR_FRAME_START] = int(info_item.attrib[Constants.C_STR_FRAME_START])
@@ -103,6 +109,31 @@ class RenderTaskManager():
         else:
             return data_info_render
     
+    # get scene detail
+    # return scene with frame information
+    # scene_data should be
+    # {Constants.C_STR_ID:folder_id, Constants:C_STR_NAME:scene_name}
+    def get_scene_frame_info(self, scene_data):
+        file_info_name = self.get_info_file_name(scene_data[Constants.C_STR_ID])
+            
+        frames_data = []
+        
+        if os.path.isfile(file_info_name):
+            info_file = ET.parse(file_info_name).getroot()
+            
+            frames = info_file.findall(Constants.C_STR_SCENE\
+                + '/' + Constants.C_STR_FRAME)
+                
+            for frame in frames:
+                frame_info = {}
+                frame_info[Constants.C_STR_FRAME_RENDER_STATUS] = int(frame.attrib[Constants.C_STR_FRAME_RENDER_STATUS])
+                frame_info[Constants.C_STR_ID] = int(frame.attrib[Constants.C_STR_ID])
+                frame_info[Constants.C_STR_NEED_TO_RENDER] = int(frame.attrib[Constants.C_STR_NEED_TO_RENDER])
+                
+                frames_data.append(frame_info)
+                
+        return frames_data
+    
     # check if task.json file locked        
     def is_task_file_locked(self):
         if os.path.isfile(Constants.C_STR_TASK_FILE_LOCK):
@@ -112,13 +143,15 @@ class RenderTaskManager():
             
     # lock task.json
     def lock_task_file(self):
-        lock = open(Constants.C_STR_TASK_FILE_LOCK, 'w')
-        lock.write('')
-        lock.close()
+        if not os.path.isfile(Constants.C_STR_TASK_FILE_LOCK):
+            lock = open(Constants.C_STR_TASK_FILE_LOCK, 'w')
+            lock.write('')
+            lock.close()
         
     # unlock task.json
     def unlock_task_file(self):
-        os.remove(Constants.C_STR_TASK_FILE_LOCK)
+        if os.path.isfile(Constants.C_STR_TASK_FILE_LOCK):
+            os.remove(Constants.C_STR_TASK_FILE_LOCK)
     
     # check if info file is exist or not
     # if not indicate file or folder render properties
@@ -153,9 +186,10 @@ class RenderTaskManager():
             + os.path.sep\
             + Constants.C_STR_INFO_FILE_LOCK
             
-        lock = open(info_file_lock, 'w')
-        lock.write('')
-        lock.close()
+        if not os.path.isfile(info_file_lock):
+            lock = open(info_file_lock, 'w')
+            lock.write('')
+            lock.close()
         
     # unlock task.json
     def unlock_info_file(self, folder_id):
@@ -165,7 +199,15 @@ class RenderTaskManager():
             + os.path.sep\
             + Constants.C_STR_INFO_FILE_LOCK
             
-        os.remove(info_file_lock)
+        if os.path.isfile(info_file_lock):
+            os.remove(info_file_lock)
+        
+    # reset scene to process
+    def reset_scene_to_process(self):
+        self.lock_task_file()
+        os.remove(Constants.C_STR_TASK_FILE)
+        self.get_scene_to_process()
+        self.unlock_task_file()
         
     # get scene to proceess
     # save scene info and all tiles to precess
@@ -338,7 +380,9 @@ class RenderTaskManager():
                 folder_id = file_name.replace(('_' + frame_info[-2] + '_' + frame_info[-1]), '')
                 
                 # set frame render to complete
-                self.set_frame_render_completed(folder_id, scene_name, frame)
+                self.set_frame_render_completed({Constants.C_STR_ID:folder_id,\
+                    Constants.C_STR_NAME:scene_name,\
+                    Constants.C_STR_FRAME:frame})
                 
                 # remove temporary tile image
                 tile_frame_prefix = self._config[Constants.C_STR_SOURCE]\
@@ -359,17 +403,54 @@ class RenderTaskManager():
             + os.path.sep + folder_id\
             + os.path.sep + Constants.C_STR_INFO_FILE
         
+    # check if all frame rendered
+    def set_scene_render_completed(self):
+        scene_data = self.get_scenes_to_render()
+        
+        scenes = scene_data[Constants.C_STR_RENDER_START]
+        
+        for scene in scenes:
+            info_file_name = self.get_info_file_name(scene[Constants.C_STR_ID])
+            
+            if os.path.isfile(info_file_name):
+                info_file = ET.parse(info_file_name).getroot()
+                
+                # check completed rendered frame
+                completed_rendered_frame = len(info_file.findall(Constants.C_STR_SCENE\
+                    + '/[@' + Constants.C_STR_NAME + '=\'' + scene[Constants.C_STR_NAME] + '\']'
+                    + '/' + Constants.C_STR_FRAME\
+                    + '/[@' + Constants.C_STR_NEED_TO_RENDER + '=\'' + str(Constants.C_NUM_NEED_TO_RENDER_TRUE) + '\']'\
+                    + '[@' + Constants.C_STR_FRAME_RENDER_STATUS + '=\'' + str(Constants.C_NUM_FRAME_RENDER_COMPLETED) + '\']'))
+                
+                # check uncomplete frame need to render
+                uncomplete_render_frame = len(info_file.findall(Constants.C_STR_SCENE\
+                    + '/[@' + Constants.C_STR_NAME + '=\'' + scene[Constants.C_STR_NAME] + '\']'
+                    + '/' + Constants.C_STR_FRAME\
+                    + '/[@' + Constants.C_STR_NEED_TO_RENDER + '=\'' + str(Constants.C_NUM_NEED_TO_RENDER_TRUE) + '\']'\
+                    + '[@' + Constants.C_STR_FRAME_RENDER_STATUS + '=\'' + str(Constants.C_NUM_FRAME_RENDER_UNCOMPLETE) + '\']'))
+                
+                # set scene to complete rendered
+                if completed_rendered_frame and not uncomplete_render_frame:
+                    scene_obj = info_file.find(Constants.C_STR_SCENE\
+                        + '/[@' + Constants.C_STR_NAME + '=\'' + scene[Constants.C_STR_NAME] + '\']')
+                        
+                    scene_obj.set(Constants.C_STR_RENDER_STATUS, str(Constants.C_NUM_RENDER_STOP))
+                    
+                    # serialize data
+                    ET.ElementTree(info_file).write(info_file_name, encoding='UTF-8')
+                
     # set rendered frame flag to complete
-    def set_frame_render_completed(self, folder_id, scene_name, frame):
-        info_file_name = self.get_info_file_name(folder_id)
+    # {Constant.C_STR_ID:folder_name, Constants.C_STR_NAME:scene name, Constants.C_STR_FRAME:frame id}
+    def set_frame_render_completed(self, scene_data):
+        info_file_name = self.get_info_file_name(scene_data[Constants.C_STR_ID])
         
         if os.path.isfile(info_file_name):
             info_file = ET.parse(info_file_name).getroot()
             
             # get frame object
             frame_to_process = info_file.find(Constants.C_STR_SCENE\
-                + '/[@' + Constants.C_STR_NAME + '=\'' + scene_name + '\']'\
-                + '/' + Constants.C_STR_FRAME + '/[@' + Constants.C_STR_ID + '=\'' + str(frame) + '\']')
+                + '/[@' + Constants.C_STR_NAME + '=\'' + scene_data[Constants.C_STR_NAME] + '\']'\
+                + '/' + Constants.C_STR_FRAME + '/[@' + Constants.C_STR_ID + '=\'' + str(scene_data[Constants.C_STR_FRAME]) + '\']')
                 
             frame_to_process.set(Constants.C_STR_FRAME_RENDER_STATUS, str(Constants.C_NUM_FRAME_RENDER_COMPLETED))
             
@@ -379,7 +460,7 @@ class RenderTaskManager():
     # set frame to render
     # parameter in json data
     # all parameter can't be empty'
-    # {Constants.C_STR_ID: folder_name, Constants.C_STR_NAME: scene_name, Constants.C_STR_FRAME: 'frame, frame, frame', Constants.C_STR_RENDER_STATUS, Constant.C_STR_NEED_TO_RENDER}
+    # {Constants.C_STR_ID: folder_name, Constants.C_STR_NAME: scene_name, Constants.C_STR_FRAME: 'frame, frame, frame', Constants.C_STR_RENDER_STATUS, Constant.C_STR_NEED_TO_RENDER, Constants.C_STR_RENDER_PAUSE: pause flag}
     # if frame = '' indicate to render all
     # if frame = '-1' indicate don't render anithing'
     def set_scene_to_render(self, scene_data):
@@ -398,7 +479,7 @@ class RenderTaskManager():
             
             # get scene to process by scene name
             scene_to_process = info_file.find(Constants.C_STR_SCENE\
-                    + '/[@' + Constants.C_STR_NAME + '=\'' + scene_data[Constants.C_STR_NAME] + '\']')
+                + '/[@' + Constants.C_STR_NAME + '=\'' + scene_data[Constants.C_STR_NAME] + '\']')
                     
             # set scene render status
             scene_to_process.set(Constants.C_STR_RENDER_STATUS, str(scene_data[Constants.C_STR_RENDER_STATUS]))
@@ -408,7 +489,6 @@ class RenderTaskManager():
                 # get all frames count
                 frames = range(1, int(scene_to_process.attrib[Constants.C_STR_FRAME_END]) + 1)
             
-            
             # set frame to render
             for frame in frames:
                 set_frame = str(frame).strip()
@@ -416,18 +496,147 @@ class RenderTaskManager():
                 frame_to_process = info_file.find(Constants.C_STR_SCENE\
                     + '/[@' + Constants.C_STR_NAME + '=\'' + scene_data[Constants.C_STR_NAME] + '\']'
                     + '/' + Constants.C_STR_FRAME + '/[@' + Constants.C_STR_ID + '=\'' + set_frame + '\']')
-                    
-                # set frame to render status
-                frame_to_process.set(Constants.C_STR_NEED_TO_RENDER, str(need_to_render))
+                
+                if scene_data.get(Constants.C_STR_RENDER_PAUSE) == Constants.C_NUM_RENDER_RESTART:
+                    # set frame to render status
+                    frame_to_process.set(Constants.C_STR_NEED_TO_RENDER, str(need_to_render))
+                
+                    # set flag to uncomplete
+                    # if not pause state set to uncomplete
+                    if need_to_render:
+                        frame_to_process.set(Constants.C_STR_FRAME_RENDER_STATUS, str(Constants.C_NUM_FRAME_RENDER_UNCOMPLETE))
+                
+                    # delete frame if file rendered file exist
+                    output_frame_file_name = self._get_frame_output_file_name({Constants.C_STR_FRAME : set_frame,\
+                        Constants.C_STR_NAME : scene_data[Constants.C_STR_NAME],\
+                        Constants.C_STR_ID : scene_data[Constants.C_STR_ID]})
+                
+                    if os.path.isfile(output_frame_file_name):
+                        os.remove(output_frame_file_name)
                 
             # serialize data
             ET.ElementTree(info_file).write(info_file_name, encoding='UTF-8')
             
+    # check if render process tiles of frame is complete
+    def is_frame_render_complete(self, render_data):
+        # if tiles of frame render complete then merge tile into frame
+        # merge file will named as format folder_id_scene_name_frame
+        tiles_frame = self._get_tile_output_folder(render_data)\
+            + os.path.sep + render_data[Constants.C_STR_ID]\
+            + '_' + render_data[Constants.C_STR_NAME]\
+            + '_' + render_data[Constants.C_STR_FRAME] + '_*'
+            
+        # if render complete
+        # num tiles each frame must equals with square root of Constants.C_NUM_RENDER_SPLIT
+        if os.path.isfile(self._get_frame_output_file_name(render_data)):
+            return True
+            
+        elif os.path.isfile(self._get_frame_output_completed_file_name(render_data)):
+            return True
+            
+        elif len(glob.glob(tiles_frame)) == (Constants.C_NUM_RENDER_SPLIT * Constants.C_NUM_RENDER_SPLIT):
+            # merge image if render completed
+            self._merge_image(render_data)
+            
+            # create completed frame flag
+            if not os.path.isfile(self._get_frame_output_completed_file_name(render_data)):
+                frame_ok = open(self._get_frame_output_completed_file_name(render_data), 'w')
+                frame_ok.write('')
+                frame_ok.close()
+            
+            return True
+            
+        else:
+            return False
+    
+    # get tile name
+    def _get_tile_output_folder(self, render_data):
+        output_folder = self._config[Constants.C_STR_SOURCE]\
+            + os.path.sep + render_data[Constants.C_STR_ID]\
+            + os.path.sep + Constants.C_STR_TILE
+            
+        return output_folder
+        
+    # get frame output folder
+    def _get_frame_output_folder_name(self, render_data):
+        output_folder = self._config[Constants.C_STR_SOURCE]\
+            + os.path.sep + render_data[Constants.C_STR_ID]\
+            + os.path.sep + Constants.C_STR_FRAME
+            
+        return output_folder
+        
+    # get output frame name
+    def _get_frame_output_file_name(self, render_data):
+        zero_prefix = 10 - len(render_data[Constants.C_STR_FRAME])
+        zero_prefix = '0' * zero_prefix
+        
+        frame_output_name = self._get_frame_output_folder_name(render_data)\
+            + os.path.sep + render_data[Constants.C_STR_NAME]\
+            + '_' + zero_prefix + render_data[Constants.C_STR_FRAME] + '.png'
+            
+        return frame_output_name
+        
+    def _get_frame_output_completed_file_name(self, render_data):
+        zero_prefix = 10 - len(render_data[Constants.C_STR_FRAME])
+        zero_prefix = '0' * zero_prefix
+         
+        completed_frame_folder = self._config[Constants.C_STR_SOURCE] + os.path.sep + Constants.C_STR_COMPLETED_FRAME
+        
+        frame_output_completed_frame = completed_frame_folder\
+            + os.path.sep + render_data[Constants.C_STR_ID]\
+            + '_' + render_data[Constants.C_STR_NAME]\
+            + '_' + zero_prefix + render_data[Constants.C_STR_FRAME] + '.ok'
+            
+        # check if output frame folder not exist
+        # create it
+        if not os.path.isdir(completed_frame_folder):
+            os.mkdir(completed_frame_folder, 0o777)
+            os.chmod(completed_frame_folder, stat.S_IRWXO|stat.S_IRWXU|stat.S_IRWXG)
+            
+        return frame_output_completed_frame
+    
+    # merge render data
+    def _merge_image(self, render_data):
+        tile_data_prefix = self._get_tile_output_folder(render_data)\
+            + os.path.sep\
+            + render_data[Constants.C_STR_ID]\
+            + '_' + render_data[Constants.C_STR_NAME]\
+            + '_' + render_data[Constants.C_STR_FRAME]
+            
+        resolution_x = int(render_data[Constants.C_STR_RESOLUTION_X])
+        resolution_y = int(render_data[Constants.C_STR_RESOLUTION_Y])
+           
+        x_increment = resolution_x/Constants.C_NUM_RENDER_SPLIT
+        y_increment = resolution_y/Constants.C_NUM_RENDER_SPLIT
+        
+        new_im = Image.new('RGBA', (int(resolution_x), int(resolution_y)))
+        x_position = 0
+        y_position = 0
+        
+        for x in range(0, Constants.C_NUM_RENDER_SPLIT):
+            # reset y postition
+            y_position = 0
+            
+            for y in range(Constants.C_NUM_RENDER_SPLIT - 1, -1, -1): # reverse y axis blender is from bottom left, pil is from top left
+                tile_image = Image.open(tile_data_prefix + '_' + str(x) + '_' + str(y) + '.png')
+                tile_width, tile_height = tile_image.size
+                
+                new_im.paste(tile_image, (x_position, y_position))
+                
+                y_position += tile_height
+                
+                if not y:
+                    x_position += tile_width
+        
+        if not os.path.isfile(self._get_frame_output_file_name(render_data)):
+            new_im.save(self._get_frame_output_file_name(render_data), 'png')
+            
 if __name__ == '__main__':
     #RenderTaskManager(Config().get_config()).set_scene_to_render({Constants.C_STR_ID: 'bob_lamp_update_1', Constants.C_STR_NAME: 'Scene', Constants.C_STR_FRAME: '', Constants.C_STR_RENDER_STATUS: Constants.C_NUM_RENDER_START, Constants.C_STR_NEED_TO_RENDER: Constants.C_NUM_NEED_TO_RENDER_TRUE})
     #print(base64.b64decode(RenderTaskManager(Config().get_config()).get_scenes_to_render(return_type='json')))
+    #print(RenderTaskManager(Config().get_config()).reset_scene_to_process())
     print(RenderTaskManager(Config().get_config()).get_scene_to_process())
     #a = RenderTaskManager(Config().get_config()).pop_render_task()
     #print(RenderTaskManager(Config().get_config()).is_info_file_exist(a[Constants.C_STR_ID]))
-    #print(RenderTaskManager(Config().get_config()).pause_all_scenes(False))
+    #print(RenderTaskManager(Config().get_config()).get_scene_frame_info({Constants.C_STR_ID:'test', Constants.C_STR_SCENE:'Scene'}))
     #RenderTaskManager(Config().get_config()).get_file_to_render(return_type='json')

@@ -50,7 +50,7 @@ class Constants():
     C_STR_NODE_CPUINFO_FILE = 'node_cpuinfo.xml'
     C_STR_SERVER_INFO_FILE = 'server_status.xml'
     
-    C_NUM_NODE_MONITOR_SLEEP_TIME = 0.0000005
+    C_NUM_NODE_MONITOR_SLEEP_TIME = 0.0001
 
     ##################
     # config constants
@@ -103,7 +103,7 @@ class Constants():
     C_STR_BORDER_MIN_Y = 'border_min_y'
     C_STR_BORDER_MAX_Y = 'border_max_y'
     
-    C_NUM_RENDER_SPLIT = 2
+    C_NUM_RENDER_SPLIT = 4
     C_NUM_RENDER_SCALE = 1.0
 
     C_NUM_RENDER_SIZE = C_NUM_RENDER_SCALE / C_NUM_RENDER_SPLIT
@@ -129,6 +129,12 @@ class Constants():
     C_NUM_FRAME_RENDER_COMPLETED = 1
     C_NUM_FRAME_RENDER_UNCOMPLETE = 0
     
+    # pause state
+    C_STR_RENDER_PAUSE = 'render_pause'
+    C_NUM_RENDER_PAUSE = 1
+    C_NUM_RENDER_RESUME = 0
+    C_NUM_RENDER_RESTART = -1
+    
     # need to render flag
     C_NUM_NEED_TO_RENDER_TRUE = 1
     C_NUM_NEED_TO_RENDER_FALSE = 0
@@ -144,5 +150,7 @@ class Constants():
     C_NUM_ACTION_UPDATE_CPUINFO = 1
     C_NUM_ACTION_TASK_REQUEST = 2
     C_NUM_ACTION_RENDER_REPORT = 3
+    C_NUM_ACTION_SCENE_TO_RENDER = 4
+    C_NUM_ACTION_SET_SCENE_TO_RENDER = 5
     
     
