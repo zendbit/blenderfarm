@@ -1,10 +1,27 @@
 blenderfarm = function(){
+    this.m_render_check = null
+    
+    this.m_render_info_start = {}
+    this.m_render_info_stop = {}
+    this.m_render_info_resume = {}
+
+    this.render_check = function(){
+        clearTimeout(bfobj.m_render_check);
+        bfobj.m_render_check = setTimeout(function(){
+            bfobj.get_scene_to_render();
+            bfobj.render_check();
+        }, 3000);
+    }
+
     this.get_scene_to_render = function(){
         send_data = {
             action:'4'
         }; // get scene data
             
-        $('#onprogress-content').empty();
+        //$('#onprogress-content-start').empty();
+        //$('#onprogress-content-stop').empty();
+        var html_start = '';
+        var html_stop = '';
         
         // filter filename
         var filter_name = $('#find-filename').val().trim();
@@ -16,7 +33,10 @@ blenderfarm = function(){
             // don't show render start
             if($('#complete-btn').attr('active') != 1){
                 if(scene_to_render['render_start'].length){
+                
                     render_start = scene_to_render['render_start'];
+                    
+                    bfobj.m_render_info_start = {}
                     
                     for(var index in render_start){
                     
@@ -33,10 +53,10 @@ blenderfarm = function(){
                         
                         var total_render = (parseInt(render_start[index]['render_uncompleted']) + parseInt(render_start[index]['render_completed']));
                         
-                        var stop_btn_id = 'start_' + render_start[index]['id'] + render_start[index]['name'];
-                        var resume_btn_id = 'detail_' + render_start[index]['id'] + render_start[index]['name'];
+                        var stop_btn_id = 'start_' + render_start[index]['id'] + '_' + render_start[index]['name'];
+                        var resume_btn_id = 'detail_' + render_start[index]['id'] + '_' + render_start[index]['name'];
                         
-                        var html = '<div class="box-info">'
+                        html_start += '<div class="box-info">'
                             + '<div class="box-info-title">' + render_start[index]['id'] + '.blend</div>'
                                 + '<div class="box-info-item">'
                                     + '<div>- Folder Id: ' + render_start[index]['id'] + '</div>'
@@ -51,14 +71,14 @@ blenderfarm = function(){
                                     + '<div>- Progress: </div>'
                                     + '<div><progress value="' + render_start[index]['render_completed'] + '" max="' + total_render + '"></progress></div>'
                                     + '<div class="box-info-menu">'
-                                        + '<div id="' + stop_btn_id + '">Stop Render</div>'
+                                        + '<div class="render-start-btn-stop" id="' + stop_btn_id + '">Stop Render</div>'
                                     + '</div>'
                                 + '</div>'
                             + '</div>';
+                            
+                        bfobj.m_render_info_start[stop_btn_id] = render_start[index];
                         
-                        $('#onprogress-content').append(html);
-                        
-                        $('#' + stop_btn_id).click(function(render_info){
+                        /*$('#' + stop_btn_id).click(function(render_info){
                             return function(){
                                 stop_data = {
                                     action:5, // set_scene_to_render
@@ -76,13 +96,47 @@ blenderfarm = function(){
                                     }
                                 });
                             }
-                        }(render_start[index]));
+                        }(render_start[index]));*/
                     }
+                    
+                    $('#onprogress-content-start').html(html_start);
+                    
+                    $('.render-start-btn-stop').each(function(){
+                    
+                        var id = $(this).attr('id');
+                        
+                        $('#' + id).click(function(id){
+                            return function(){
+                            
+                                render_info = bfobj.m_render_info_start[id]
+                                
+                                stop_data = {
+                                    action:5, // set_scene_to_render
+                                    id:render_info['id'],
+                                    name:render_info['name'],
+                                    frame:'',
+                                    render_status:0,
+                                    need_to_render:0,
+                                    render_pause:1,
+                                };
+                                
+                                $.get('parse?send_data=' + btoa(JSON.stringify(stop_data)),function(data, status){
+                                    //if(parseInt(data)){
+                                    //    bfobj.get_scene_to_render();
+                                    //}
+                                    location.reload();
+                                });
+                            }
+                        }(id));
+                    });
                 }
             }
             
             if(scene_to_render['render_stop'].length){
+            
                 render_stop = scene_to_render['render_stop'];
+                
+                bfobj.m_render_info_stop = {}
                 
                 for(var index in render_stop){
                 
@@ -107,10 +161,10 @@ blenderfarm = function(){
                         continue;
                     }
                     
-                    var start_btn_id = 'start_' + render_stop[index]['id'] + render_stop[index]['name'];
-                    var resume_btn_id = 'detail_' + render_stop[index]['id'] + render_stop[index]['name'];
+                    var start_btn_id = 'start_' + render_stop[index]['id'] + '_' + render_stop[index]['name'];
+                    var resume_btn_id = 'resume_' + render_stop[index]['id'] + '_' + render_stop[index]['name'];
                     
-                    var html = '<div class="box-info">'
+                    html_stop += '<div class="box-info">'
                         + '<div class="box-info-title">' + render_stop[index]['id'] + '.blend</div>'
                             + '<div class="box-info-item">'
                                 + '<div>- Folder Id: ' + render_stop[index]['id'] + '</div>'
@@ -125,19 +179,21 @@ blenderfarm = function(){
                                 + '<div>- Progress: </div>'
                                 + '<div><progress value="' + render_stop[index]['render_completed'] + '" max="' + total_render + '"></progress></div>'
                                 + '<div class="box-info-menu">'
-                                    + '<div id="' + start_btn_id + '">Start Render</div>'
-                                    + '<div id="' + resume_btn_id + '">Resume Render</div>'
+                                    + '<div class="render-stop-btn-start" id="' + start_btn_id + '">Start Render</div>'
+                                    + '<div class="render-stop-btn-resume" id="' + resume_btn_id + '">Resume Render</div>'
                                 + '</div>'
                             + '</div>'
                         + '</div>';
-                        
-                    $('#onprogress-content').append(html);
+                    
+                    render_stop[index]['btn_start_title'] = 'Start Render';
+                    render_stop[index]['btn_resume_hide'] = false;
                     
                     // change button to restart render if render process completed
                     if(total_render == render_stop[index]['render_completed']
                         && total_render){
                         
-                        $('#' + start_btn_id).html("Restart Render");
+                        //$('#' + start_btn_id).html("Restart Render");
+                        render_stop[index]['btn_start_title'] = 'Restart Render';
                     }
                     
                     // if total render > 0
@@ -146,13 +202,19 @@ blenderfarm = function(){
                     if(total_render != render_stop[index]['render_completed']
                         && total_render){
                         
-                        $('#' + resume_btn_id).show();
-                        $('#' + start_btn_id).html("Restart Render");
+                        //$('#' + resume_btn_id).show();
+                        //$('#' + start_btn_id).html("Restart Render");
+                        render_stop[index]['btn_start_title'] = 'Restart Render';
+                        render_stop[index]['btn_resume_hide'] = false;
                     }else{
-                        $('#' + resume_btn_id).hide();
+                        //$('#' + resume_btn_id).hide();
+                        render_stop[index]['btn_resume_hide'] = true;
                     }
                     
-                    $('#' + start_btn_id).click(function(render_info){
+                    bfobj.m_render_info_stop[start_btn_id] = render_stop[index];
+                    bfobj.m_render_info_resume[resume_btn_id] = render_stop[index];
+                    
+                    /*$('#' + start_btn_id).click(function(render_info){
                         return function(){
                             start_data = {
                                 action:5, // set_scene_to_render
@@ -190,8 +252,76 @@ blenderfarm = function(){
                                 }
                             });
                         }
-                    }(render_stop[index]));
+                    }(render_stop[index]));*/
                 }
+                
+                $('#onprogress-content-stop').html(html_stop);
+                
+                $('.render-stop-btn-start').each(function(){
+                    
+                    var id = $(this).attr('id');
+                    
+                    $('#' + id).html(bfobj.m_render_info_stop[id]['btn_start_title']);
+                    
+                    $('#' + id).click(function(id){
+                        return function(){
+                        
+                            render_info = bfobj.m_render_info_stop[id]
+                            
+                            start_data = {
+                                action:5, // set_scene_to_render
+                                id:render_info['id'],
+                                name:render_info['name'],
+                                frame:'',
+                                render_status:1,
+                                need_to_render:1,
+                                render_pause:-1,
+                            };
+                            
+                            $.get('parse?send_data=' + btoa(JSON.stringify(start_data)),function(data, status){
+                                //if(parseInt(data)){
+                                //    bfobj.get_scene_to_render();
+                                //}
+                                location.reload();
+                            });
+                        }
+                    }(id));
+                });
+                
+                $('.render-stop-btn-resume').each(function(){
+                
+                    var id = $(this).attr('id');
+                    
+                    if(bfobj.m_render_info_resume[id]['btn_resume_hide']){
+                        $('#' + id).hide();
+                    }else{
+                        $('#' + id).show();
+                    }
+                    
+                    $('#' + id).click(function(id){
+                        return function(){
+                        
+                            render_info = bfobj.m_render_info_resume[id];
+                            
+                            start_data = {
+                                action:5, // set_scene_to_render
+                                id:render_info['id'],
+                                name:render_info['name'],
+                                frame:'',
+                                render_status:1,
+                                need_to_render:1,
+                                render_pause:0,
+                            };
+                            
+                            $.get('parse?send_data=' + btoa(JSON.stringify(start_data)),function(data, status){
+                                //if(parseInt(data)){
+                                //    bfobj.get_scene_to_render();
+                                //}
+                                location.reload();
+                            });
+                        }
+                    }(id));
+                });
             }
         });
     }

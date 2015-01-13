@@ -14,7 +14,7 @@ class Constants():
     C_NUM_SHARED_WRITE_OK = 1
     C_NUM_SHARED_WRITE_NONE = 0
     
-    C_NUM_NODE_RENDER_SLEEP_TIME = 0.0001
+    C_NUM_NODE_RENDER_SLEEP_TIME = 0.000
     
     C_STR_NODE_STATUS_FOLDER = 'node_status/'
     
@@ -50,7 +50,7 @@ class Constants():
     C_STR_NODE_CPUINFO_FILE = 'node_cpuinfo.xml'
     C_STR_SERVER_INFO_FILE = 'server_status.xml'
     
-    C_NUM_NODE_MONITOR_SLEEP_TIME = 0.0001
+    C_NUM_NODE_MONITOR_SLEEP_TIME = 0.000
 
     ##################
     # config constants

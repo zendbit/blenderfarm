@@ -32,6 +32,9 @@ class NodeMonitor(Thread):
         # thread check complete scene rendered
         self._check_complete_scene_thread = None
         
+        # init render task manager
+        self._task_manager = RenderTaskManager(self._config)
+        
     # copy _s_node_cpuinfo to _node_sort_cpuinfo
     # then sort it by cpu_percent usage average from lowet to highest
     # combine sort by load_factor from lowest to highest
@@ -118,13 +121,11 @@ class NodeMonitor(Thread):
                 
             # check complete frame
             if self._check_complete_frame_thread == None or not self._check_complete_frame_thread.is_alive():
-                check_completed_frame = RenderTaskManager(self._config)
-                self._check_complete_frame_thread = Thread(target=check_completed_frame.check_rendered_frames)
+                self._check_complete_frame_thread = Thread(target=self._task_manager.check_rendered_frames)
                 self._check_complete_frame_thread.start()
             
             if self._check_complete_scene_thread == None or not self._check_complete_scene_thread.is_alive():
-                check_completed_scene = RenderTaskManager(self._config)
-                self._check_complete_scene_thread = Thread(target=check_completed_scene.set_scene_render_completed)
+                self._check_complete_scene_thread = Thread(target=self._task_manager.set_scene_render_completed)
                 self._check_complete_scene_thread.start()
             
             time.sleep(Constants.C_NUM_NODE_MONITOR_SLEEP_TIME)

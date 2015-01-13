@@ -1,7 +1,7 @@
 import os
 import threading
 import time
-import psutil
+#import psutil
 import socket
 import json
 from threading import Thread
@@ -46,6 +46,16 @@ class NodeRender(Thread):
                 self._config = Config().get_config()
                 
                 if len(self._config):
+                    # check if folder shared exists
+                    if not os.path.isdir(self._config[Constants.C_STR_SOURCE]):
+                        print('access exception: shared folder ' + self._config[Constants.C_STR_SOURCE] + ' isn\'t accessible')
+                        continue
+                        
+                    # check if folder shared writeable
+                    if not os.access(self._config[Constants.C_STR_SOURCE], os.W_OK):
+                        print('access exception: shared folder ' + self._config[Constants.C_STR_SOURCE] + ' isn\'t writeable')
+                        continue
+                        
                     # get render from queue
                     try:
                         if not self._task_manager.is_task_file_locked():
@@ -74,48 +84,48 @@ class NodeRender(Thread):
             time.sleep(Constants.C_NUM_NODE_RENDER_SLEEP_TIME)
     
     # encode data from node
-    def _encode_data(self, data):
-        return base64.b64encode(data.encode('UTF-8')).decode('UTF-8')
+    #def _encode_data(self, data):
+    #    return base64.b64encode(data.encode('UTF-8')).decode('UTF-8')
         
     # decode data from node
-    def _decode_data(self, data):
-        return base64.b64decode(data).decode('UTF-8')
+    #def _decode_data(self, data):
+    #    return base64.b64decode(data).decode('UTF-8')
         
     # send message to server
     # report client process to server
     # message should be in string
-    def _send_message(self, message):
-        data = self._encode_data(message)
+    #def _send_message(self, message):
+    #    data = self._encode_data(message)
         
         # send data to server
-        return request.urlopen(self._config[Constants.C_STR_PROTOCOL]\
-            + self._config[Constants.C_STR_IP]\
-            + ':' + str(self._config[Constants.C_STR_PORT])\
-            + '/?send_data=' + data).readall()
+    #    return request.urlopen(self._config[Constants.C_STR_PROTOCOL]\
+    #        + self._config[Constants.C_STR_IP]\
+    #        + ':' + str(self._config[Constants.C_STR_PORT])\
+    #        + '/?send_data=' + data).readall()
     
     # send node render information
-    def _send_node_renderinfo(self):
-        self._send_message(json.dumps(self._get_node_info(config)))
+    #def _send_node_renderinfo(self):
+    #    self._send_message(json.dumps(self._get_node_info(config)))
     
     # send request to get task from server
-    def _send_request_task(self):
-        if (self._thread_runner == None) or (not self._thread_runner.is_alive()):
-            node_request = {}
+    #def _send_request_task(self):
+    #    if (self._thread_runner == None) or (not self._thread_runner.is_alive()):
+    #        node_request = {}
             
             # action type
-            node_request[Constants.C_STR_ACTION] = Constants.C_NUM_ACTION_TASK_REQUEST
+    #        node_request[Constants.C_STR_ACTION] = Constants.C_NUM_ACTION_TASK_REQUEST
             
-            result = self._decode_data(self._send_message(json.dumps(node_request)))
+    #        result = self._decode_data(self._send_message(json.dumps(node_request)))
             
-            if result != '0':
-                render_data = json.loads(result)
+    #        if result != '0':
+    #            render_data = json.loads(result)
                 # init thread runner
-                self._thread_runner = threading.Thread(target=self._do_render, args=(render_data))
-                self._thread_runner.start()
+    #            self._thread_runner = threading.Thread(target=self._do_render, args=(render_data))
+    #            self._thread_runner.start()
                 
     # send node information
-    def _send_node_cpuinfo(self):
-        self._send_message(json.dumps(self._get_node_info(config)))
+    #def _send_node_cpuinfo(self):
+    #    self._send_message(json.dumps(self._get_node_info(config)))
                 
     # get do render
     def _do_render(self, render_data):
@@ -144,6 +154,7 @@ class NodeRender(Thread):
                 render_cmd = self._config[Constants.C_STR_BLENDER]\
                     + ' -b ' + blend_file\
                     + ' -S ' + render_data[Constants.C_STR_NAME]\
+                    + ' -t 64 '\
                     + ' -P RenderTile.py -- ' + py_param
                     
                 # call render command as tiled
@@ -153,52 +164,52 @@ class NodeRender(Thread):
                 self._task_manager.is_frame_render_complete(render_data)
     
     # get cpu information
-    def _get_node_info(self):
+    #def _get_node_info(self):
     
-        node_info = {}
+    #    node_info = {}
     
         # action type
-        node_info[Constants.C_STR_ACTION] = Constants.C_NUM_ACTION_UPDATE_CPUINFO
+    #    node_info[Constants.C_STR_ACTION] = Constants.C_NUM_ACTION_UPDATE_CPUINFO
         
         # add cpu report type as status cpu infomation
-        node_info[Constants.C_STR_DATA_TYPE] = Constants.C_STR_DATA_CPU
+    #    node_info[Constants.C_STR_DATA_TYPE] = Constants.C_STR_DATA_CPU
         
         # get cpu count
-        node_info[Constants.C_STR_CPU_NUM] = psutil.cpu_count()
+    #    node_info[Constants.C_STR_CPU_NUM] = psutil.cpu_count()
         
         # get per cpu utilization
-        cpu_usage = psutil.cpu_percent(interval=1, percpu=True)
-        node_info[Constants.C_STR_CPU_USAGE] = cpu_usage
+    #    cpu_usage = psutil.cpu_percent(interval=1, percpu=True)
+    #    node_info[Constants.C_STR_CPU_USAGE] = cpu_usage
         
         # get average cpu load
-        node_info[Constants.C_STR_CPU_USAGE_AVR] = sum(cpu_usage)/float(len(cpu_usage))
+    #    node_info[Constants.C_STR_CPU_USAGE_AVR] = sum(cpu_usage)/float(len(cpu_usage))
         
         # get memory usage
-        node_info[Constants.C_STR_MEMORY_USED] = psutil.phymem_usage().used
-        node_info[Constants.C_STR_MEMORY_FREE] = psutil.phymem_usage().free
+    #    node_info[Constants.C_STR_MEMORY_USED] = psutil.phymem_usage().used
+    #    node_info[Constants.C_STR_MEMORY_FREE] = psutil.phymem_usage().free
         
         # get os platform from client
-        node_info[Constants.C_STR_OS_PLATFORM] = sys.platform
+    #    node_info[Constants.C_STR_OS_PLATFORM] = sys.platform
         
         # get os name from client
-        node_info[Constants.C_STR_OS_HOSTNAME] = socket.gethostname()
+    #    node_info[Constants.C_STR_OS_HOSTNAME] = socket.gethostname()
         
         # check if thread render is active
-        thread_active = 0
-        if self._thread_runner != None and self._thread_runner.is_alive():
-            thread_active = 1
+    #    thread_active = 0
+    #    if self._thread_runner != None and self._thread_runner.is_alive():
+    #        thread_active = 1
             
-        node_info[Constants.C_STR_THREAD_ACTIVE] = thread_active
+    #    node_info[Constants.C_STR_THREAD_ACTIVE] = thread_active
         
-        if os.access(self._config[Constants.C_STR_SHARED], os.W_OK):
+    #    if os.access(self._config[Constants.C_STR_SHARED], os.W_OK):
             # add access shared location info
-            node_info[Constants.C_STR_SHARED_LOCATION_ACCESS] = Constants.C_NUM_SHARED_WRITE_OK
+    #        node_info[Constants.C_STR_SHARED_LOCATION_ACCESS] = Constants.C_NUM_SHARED_WRITE_OK
                         
-        else:
+    #    else:
             # add access shared locaiton info
-            node_info[Constants.C_STR_SHARED_LOCATION_ACCESS] = Constants.C_NUM_SHARED_WRITE_NONE
+    #        node_info[Constants.C_STR_SHARED_LOCATION_ACCESS] = Constants.C_NUM_SHARED_WRITE_NONE
         
-        return node_info
+    #    return node_info
             
 # launcher
 if __name__ == '__main__':

@@ -89,12 +89,15 @@ body{
 
 .header-copy{
     width:100%;
-    height:50px;
+    height:40px;
     background:#4C9ED9;
     color:#F1F1F1;
-    font-size:14pt;
+    font-size:11pt;
     position:fixed;
     top:0px;
+    font-weight:900;
+    left:0px;
+    right:0px;
 }
 
 .header-copy div{

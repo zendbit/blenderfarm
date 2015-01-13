@@ -75,6 +75,6 @@ class SourceGenerator():
             
             print('do: generate info.xml for ' + blend_file)
             # move info.xml into dir_name
-            shutil.move(os.getcwd() + '/' + Constants.C_STR_INFO_FILE, dir_name)
+            shutil.move(os.getcwd() + os.path.sep + Constants.C_STR_INFO_FILE, dir_name)
             
             print('confirm: generate source success')
